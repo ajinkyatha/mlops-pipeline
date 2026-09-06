@@ -1,4 +1,4 @@
-name: MLOps CI · Train → Evaluate → Gate → Build
+name: MLOps CI - Train, Evaluate, Gate, Build
 
 on:
   push:
@@ -20,15 +20,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: { python-version: "3.12" }
+        with:
+          python-version: "3.12"
       - run: pip install -r requirements.txt
       - name: Generate data
         run: python data/generate_data.py
-      - name: Train (logs to MLflow)
+      - name: Train
         run: python src/train.py
-      - name: Evaluate — quality gate
-        run: python src/evaluate.py            # fails the build if metrics miss thresholds
-      - name: Upload MLflow runs + model
+      - name: Evaluate quality gate
+        run: python src/evaluate.py
+      - name: Upload MLflow runs and model
         uses: actions/upload-artifact@v4
         with:
           name: model-and-mlruns
@@ -39,14 +40,20 @@ jobs:
   build-image:
     needs: train-eval
     runs-on: ubuntu-latest
-    permissions: { contents: read, packages: write }
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: { python-version: "3.12" }
+        with:
+          python-version: "3.12"
       - run: pip install -r requirements.txt && python data/generate_data.py && python src/train.py
       - uses: docker/login-action@v3
-        with: { registry: ghcr.io, username: ${{ github.actor }}, password: ${{ secrets.GITHUB_TOKEN }} }
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/build-push-action@v6
         with:
           context: .
