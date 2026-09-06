@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+mlruns/
+models/*.pkl
+data/*.csv
+drift_report.html
+.venv/
