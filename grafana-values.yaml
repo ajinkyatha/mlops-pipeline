@@ -1,0 +1,11 @@
+service: { port: 80 }
+adminPassword: "change-me-please"
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://prometheus-server.mlops.svc.cluster.local
+        access: proxy
+        isDefault: true

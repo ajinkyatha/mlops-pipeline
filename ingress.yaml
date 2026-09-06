@@ -1,0 +1,32 @@
+# Ingress for ajinkya.website (pre-filled).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mlops-ingress
+  namespace: mlops
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts: [ churn.ajinkya.website, grafana.ajinkya.website, mlflow.ajinkya.website ]
+      secretName: mlops-tls
+  rules:
+    - host: churn.ajinkya.website
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: { service: { name: churn-api, port: { number: 80 } } }
+    - host: grafana.ajinkya.website
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: { service: { name: grafana, port: { number: 80 } } }
+    - host: mlflow.ajinkya.website
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: { service: { name: mlflow, port: { number: 5000 } } }

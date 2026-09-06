@@ -1,0 +1,48 @@
+name: MLOps · Scheduled Drift Check
+
+on:
+  schedule:
+    - cron: "0 6 * * *"      # daily 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      simulate_drift:
+        description: "Inject drift to demo the alert"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - name: Build datasets
+        run: |
+          if [ "${{ inputs.simulate_drift }}" = "true" ]; then
+            python data/generate_data.py --drift
+          else
+            python data/generate_data.py
+          fi
+      - name: Run drift report
+        id: drift
+        run: python src/monitor_drift.py
+        continue-on-error: true
+      - name: Upload drift report
+        uses: actions/upload-artifact@v4
+        with: { name: drift-report, path: drift_report.html }
+      - name: Open issue on drift
+        if: steps.drift.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner, repo: context.repo.repo,
+              title: "🚨 Data drift detected — retrain recommended",
+              body: "The scheduled Evidently drift check flagged dataset drift. See the `drift-report` artifact. Consider retraining via the CI pipeline."
+            })

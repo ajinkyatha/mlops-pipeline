@@ -1,0 +1,13 @@
+{
+  "title": "Churn Model — Serving & Drift",
+  "schemaVersion": 39,
+  "refresh": "10s",
+  "panels": [
+    { "type": "timeseries", "title": "Predictions/sec by label", "gridPos": {"h":8,"w":12,"x":0,"y":0},
+      "targets": [{ "expr": "sum(rate(model_predictions_total[1m])) by (label)", "legendFormat": "churn={{label}}" }] },
+    { "type": "timeseries", "title": "p95 inference latency (s)", "gridPos": {"h":8,"w":12,"x":12,"y":0},
+      "targets": [{ "expr": "histogram_quantile(0.95, sum(rate(model_inference_seconds_bucket[5m])) by (le))" }] },
+    { "type": "stat", "title": "Live churn-positive rate", "gridPos": {"h":6,"w":12,"x":0,"y":8},
+      "targets": [{ "expr": "model_positive_rate" }] }
+  ]
+}
